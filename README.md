@@ -1,13 +1,13 @@
-# Atlas Explorer
+# NBS ntervention Dashboard
 
-A no-upload, read-only GeoJSON exploration dashboard. It is designed for an administrator to update the catalogue files while users search, filter, explore, and inspect map features.
+A dashboard designed for an administrator to update the catalogue files while users search, filter, explore, and inspect map features.
 
 ## Run locally
 
 Serve this folder with any static-file server (rather than opening `index.html` directly), for example:
 
 ```powershell
-cd C:\Users\bwirayesu\Documents\Codex\2026-09-22\390405
+cd rywp-nbs-dashboard
 python -m http.server 8080
 ```
 
