@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Atlas Explorer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <header class="brand">
+          <div class="brand-mark">A</div>
+          <div><h1>Atlas</h1><span>Spatial explorer</span></div>
+        </header>
+
+        <section class="dataset-summary">
+          <div class="eyebrow">ACTIVE CATALOGUE</div>
+          <strong id="feature-count">—</strong>
+          <span>features available to explore</span>
+        </section>
+
+        <section class="sidebar-section layers-section">
+          <div class="section-heading"><h2>Map layers</h2><span id="visible-count">0/0</span></div>
+          <div id="layer-list" class="layer-list"></div>
+        </section>
+
+        <section class="sidebar-section filters-section">
+          <div class="section-heading"><h2>Filter data</h2><button id="clear-filters" class="text-button">Clear</button></div>
+          <label class="field-label" for="intervention-filter">Intervention</label>
+          <select id="intervention-filter"><option value="all">All interventions</option></select>
+          <label class="field-label" for="district-filter">District</label>
+          <select id="district-filter"><option value="all">All districts</option></select>
+          <label class="field-label" for="sector-filter">Sector</label>
+          <select id="sector-filter"><option value="all">All sectors</option></select>
+          <label class="field-label" for="cell-filter">Cell</label>
+          <select id="cell-filter"><option value="all">All cells</option></select>
+        </section>
+      </aside>
+
+      <section class="map-workspace">
+        <header class="toolbar">
+          <div class="page-title"></span><h2>Nature Based Solutions</h2></div>
+          <div class="toolbar-actions">
+            <label class="search"><span>⌕</span><input id="search-input" type="search" placeholder="Search features…" /></label>
+            <button id="fit-map" class="icon-button" title="Fit visible data">⤢</button>
+          </div>
+        </header>
+        <div class="map-wrap">
+          <div id="map"></div>
+          <div id="empty-state" class="empty-state hidden"><strong>No matching features</strong><span>Adjust the search or filters to see data.</span></div>
+        </div>
+      </section>
+
+      <aside id="details-panel" class="details-panel">
+        <div id="details-empty" class="details-empty">
+          <div class="empty-icon">⌖</div>
+          <h2>Select a feature</h2>
+          <p>Click a point or area on the map to inspect its attributes.</p>
+        </div>
+        <article id="details-content" class="details-content hidden">
+          <div class="details-top"><span id="detail-type" class="type-chip">FEATURE</span><button id="close-details" class="close-button" aria-label="Close">×</button></div>
+          <h2 id="detail-title"></h2>
+          <p id="detail-subtitle" class="detail-subtitle"></p>
+          <div class="detail-divider"></div>
+          <dl id="attribute-list" class="attribute-list"></dl>
+          <button id="zoom-detail" class="zoom-button">Focus on feature <span>→</span></button>
+        </article>
+      </aside>
+    </main>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
