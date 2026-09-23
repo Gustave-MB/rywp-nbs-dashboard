@@ -1,18 +1,13 @@
 /* RYWP-Nature based solutions
 @author: Gustave-MB */
 const catalogue = [
-  { id: 'urban-trees', label: 'Urban trees', filterLabel: 'Urban trees', color: '#4CAF50', format: 'shapefile', url: './data/Urban trees Phase I.zip' },
-  { id: 'Reforestation-Phase II', label: 'Reforestation - Phase II', filterLabel: 'Reforestation', color: '#b5da11', format: 'shapefile', url: './data/Reforestation-Phase II.zip' },
-  { id: 'Reforestation-Phase I', label: 'Reforestation - Phase I', filterLabel: 'Reforestation', color: '#b5da11', format: 'shapefile', url: './data/Reforestation-Phase I.zip' },
-  { id: 'Open spaces-Phase I', label: 'Open spaces - Phase I', filterLabel: 'Open spaces', color: '#087e73', format: 'shapefile', url: './data/Open spaces-Phase I.zip' },
-  { id: 'Bufferzones-Phase II', label: 'Bufferzones - Phase II', filterLabel: 'Bufferzones', color: '#e97b3c', format: 'shapefile', url: './data/Bufferzones-Phase II.zip' },
-  { id: 'Bufferzones Phase I', label: 'Bufferzones - Phase I', filterLabel: 'Bufferzones', color: '#e97b3c', format: 'shapefile', url: './data/Bufferzones Phase I.zip' },
-  { id: 'Agroforestry-Phase II', label: 'Agroforestry - Phase II', filterLabel: 'Agroforestry', color: '#8BC34A', format: 'shapefile', url: './data/Agroforestry-Phase II.zip' },
-  { id: 'Agroforestry-Phase I', label: 'Agroforestry - Phase I', filterLabel: 'Agroforestry', color: '#8BC34A', format: 'shapefile', url: './data/Agroforestry phase I.zip' },
-  { id: 'Afforestation-Phase II', label: 'Afforestation - Phase II', filterLabel: 'Afforestation', color: '#4CAF50', format: 'shapefile', url: './data/Afforestation-Phase II.zip' },
-  { id: 'Afforestation-Phase I', label: 'Afforestation - Phase I', filterLabel: 'Afforestation', color: '#4CAF50', format: 'shapefile', url: './data/Afforestation-Phase I.zip' },
-  { id: 'New agro 2026', label: 'New agro 2026', filterLabel: 'Agroforestry', color: '#4CAF50', format: 'shapefile', url: './data/New agro 2026.zip' }
-];
+  { id: 'urban-trees', label: 'Urban trees', filterLabel: 'Urban trees', color: '#4CAF50', format: 'shapefile', url: './data/Urban-trees.zip' },
+  { id: 'Reforestation', label: 'Reforestation', filterLabel: 'Reforestation', color: '#b5da11', format: 'shapefile', url: './data/Reforestation.zip' },
+  { id: 'Open spaces', label: 'Open spaces', filterLabel: 'Open spaces', color: '#087e73', format: 'shapefile', url: './data/Open-spaces.zip' },
+  { id: 'Bufferzones', label: 'Bufferzones', filterLabel: 'Bufferzones', color: '#e97b3c', format: 'shapefile', url: './data/Bufferzones.zip' },
+  { id: 'Agroforestry', label: 'Agroforestry', filterLabel: 'Agroforestry', color: '#8BC34A', format: 'shapefile', url: './data/Agroforestry.zip' },
+  { id: 'Afforestation', label: 'Afforestation', filterLabel: 'Afforestation', color: '#4CAF50', format: 'shapefile', url: './data/Afforestation.zip' }
+  ];
 
 const map = L.map('map', { zoomControl: false }).setView([-1.945, 30.06], 12);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
