@@ -1,12 +1,12 @@
 /* RYWP-Nature based solutions
 @author: Gustave-MB */
 const catalogue = [
-  { id: 'urban-trees', label: 'Urban trees', filterLabel: 'Urban trees', color: '#4CAF50', format: 'shapefile', url: './data/Urban-trees.zip' },
-  { id: 'Reforestation', label: 'Reforestation', filterLabel: 'Reforestation', color: '#b5da11', format: 'shapefile', url: './data/Reforestation.zip' },
-  { id: 'Open spaces', label: 'Open spaces', filterLabel: 'Open spaces', color: '#087e73', format: 'shapefile', url: './data/Open-spaces.zip' },
-  { id: 'Bufferzones', label: 'Bufferzones', filterLabel: 'Bufferzones', color: '#e97b3c', format: 'shapefile', url: './data/Bufferzones.zip' },
-  { id: 'Agroforestry', label: 'Agroforestry', filterLabel: 'Agroforestry', color: '#8BC34A', format: 'shapefile', url: './data/Agroforestry.zip' },
-  { id: 'Afforestation', label: 'Afforestation', filterLabel: 'Afforestation', color: '#4CAF50', format: 'shapefile', url: './data/Afforestation.zip' }
+  { id: 'urban-trees', label: 'Urban trees', color: '#09f111', format: 'shapefile', url: './data/Urban-trees.zip' },
+  { id: 'Reforestation', label: 'Reforestation', color: '#066e1e', format: 'shapefile', url: './data/Reforestation.zip' },
+  { id: 'Open spaces', label: 'Open spaces', color: '#087e73', format: 'shapefile', url: './data/Open-spaces.zip' },
+  { id: 'Bufferzones', label: 'Bufferzones', color: '#ecdd08', format: 'shapefile', url: './data/Bufferzones.zip' },
+  { id: 'Agroforestry', label: 'Agroforestry', color: '#a4e60b', format: 'shapefile', url: './data/Agroforestry.zip' },
+  { id: 'Afforestation', label: 'Afforestation', color: '#2a5e1d', format: 'shapefile', url: './data/Afforestation.zip' }
   ];
 
 const map = L.map('map', { zoomControl: false }).setView([-1.945, 30.06], 12);
@@ -29,7 +29,7 @@ const slug = value => String(value).replace(/[^a-zA-Z0-9_-]+/g, '-');
 const property = (feature, key) => Object.entries(feature.properties || {}).find(([name]) => name.toLowerCase() === key.toLowerCase())?.[1];
 const featureName = feature => property(feature, 'name') || property(feature, 'title') || property(feature, 'id') || 'Untitled feature';
 const normalized = value => String(value ?? '').trim().toLocaleLowerCase();
-const filterValue = (item, field) => field.catalogueValue ? (item.source.filterLabel || item.source.label) : property(item.feature, field.id);
+const filterValue = (item, field) => field.catalogueValue ? item.source.label : property(item.feature, field.id);
 
 // Dashboard summary cards. "Forest" combines the two forest-establishment interventions
 // (Reforestation + Afforestation) since there's no single catalogue category named "Forest".
@@ -39,7 +39,7 @@ const DASHBOARD_METRICS = [
   { key: 'agroforest', icon: '🌾', label: 'Agroforestry', filterLabels: ['Agroforestry'] },
   { key: 'buffer', icon: '🛡️', label: 'Buffer zones', filterLabels: ['Bufferzones'] },
   { key: 'urban', icon: '🌲', label: 'Urban trees', filterLabels: ['Urban trees'] },
-  {key: 'open-space', icon: '🌳', label: 'Open spaces', filterLabels: ['Open spaces'] }
+  {key: 'open-space', icon: '🛝', label: 'Open spaces', filterLabels: ['Open spaces'] }
 ];
 const EARTH_RADIUS_M = 6378137;
 const toRad = deg => deg * Math.PI / 180;
@@ -67,12 +67,11 @@ function lineLength(coordinates) { let total = 0; for (let i = 1; i < coordinate
 // Names are matched case/space/underscore-insensitively; add more variants here if a dataset
 // uses a field name not listed. Falls back to the geodesic calculation when no field matches.
 const AREA_FIELD_CANDIDATES = [
-  { names: ['area_ha', 'AREA', 'hectares', 'ha'], toSqm: v => v * 10000 },
-  { names: ['area_km2', 'areakm2', 'area_sqkm', 'sqkm'], toSqm: v => v * 1e6 },
+  { names: ['area_ha', 'AREA', 'ha'], toSqm: v => v * 10000 },
   { names: ['area_sqm', 'area_m2', 'aream2', 'shape_area', 'st_area', 'area'], toSqm: v => v }
 ];
 const LENGTH_FIELD_CANDIDATES = [
-  { names: ['length_km', 'LENGTH', 'len_km', 'lenkm'], toM: v => v * 1000 },
+  { names: ['length_km', 'LENGTH', 'lenkm'], toM: v => v * 1000 },
   { names: ['length_m', 'lengthm', 'length', 'shape_leng', 'shape_length', 'st_length', 'perimeter', 'len'], toM: v => v }
 ];
 const keyToken = key => key.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -116,7 +115,7 @@ function computeDashboardStats() {
   const adminFields = ['district', 'sector', 'cell'];
   return DASHBOARD_METRICS.map(group => {
     const items = allFeatures.filter(item => {
-      if (!group.filterLabels.includes(item.source.filterLabel || item.source.label)) return false;
+      if (!group.filterLabels.includes(item.source.label)) return false;
       return adminFields.every(id => els[id].value === 'all' || normalized(property(item.feature, id)) === els[id].value);
     });
     const totals = { area: 0, length: 0, count: 0 };
@@ -212,7 +211,7 @@ function updateLayerListMuting() {
     const source = catalogue.find(entry => entry.id === sourceId);
     const row = input.closest('.layer-row');
     if (!row || !source) return;
-    const isMatch = wanted === 'all' || normalized(source.filterLabel || source.label) === wanted;
+    const isMatch = wanted === 'all' || normalized(source.label) === wanted;
     row.style.opacity = isMatch ? '' : '0.35';
   });
 }
