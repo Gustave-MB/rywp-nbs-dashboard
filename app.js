@@ -19,11 +19,11 @@ const allFeatures = [];
 let selected = null;
 const els = {
   layerList: document.querySelector('#layer-list'), search: document.querySelector('#search-input'), intervention: document.querySelector('#intervention-filter'),
-  district: document.querySelector('#district-filter'), sector: document.querySelector('#sector-filter'), cell: document.querySelector('#cell-filter'),
+  district: document.querySelector('#district-filter'), sector: document.querySelector('#sector-filter'), 
   count: document.querySelector('#feature-count'), visible: document.querySelector('#visible-count'), empty: document.querySelector('#empty-state'),
   detailsEmpty: document.querySelector('#details-empty'), details: document.querySelector('#details-content')
 };
-const filterFields = [{ id: 'intervention', label: 'All interventions', catalogueValue: true }, { id: 'district', label: 'All districts' }, { id: 'sector', label: 'All sectors' }, { id: 'cell', label: 'All cells' }];
+const filterFields = [{ id: 'intervention', label: 'All interventions', catalogueValue: true }, { id: 'district', label: 'All districts' }, { id: 'sector', label: 'All sectors' }];
 const pretty = key => key.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
 const slug = value => String(value).replace(/[^a-zA-Z0-9_-]+/g, '-');
 const property = (feature, key) => Object.entries(feature.properties || {}).find(([name]) => name.toLowerCase() === key.toLowerCase())?.[1];
@@ -112,7 +112,7 @@ function formatMetric(kind, value) {
   return `${value.toLocaleString()} ${value === 1 ? 'feature' : 'features'}`;
 }
 function computeDashboardStats() {
-  const adminFields = ['district', 'sector', 'cell'];
+  const adminFields = ['district', 'sector'];
   return DASHBOARD_METRICS.map(group => {
     const items = allFeatures.filter(item => {
       if (!group.filterLabels.includes(item.source.label)) return false;
@@ -125,7 +125,7 @@ function computeDashboardStats() {
   });
 }
 function currentAdminScopeLabel() {
-  const parts = ['district', 'sector', 'cell']
+  const parts = ['district', 'sector']
     .filter(id => els[id].value !== 'all')
     .map(id => els[id].selectedOptions[0]?.textContent || els[id].value);
   return parts.length ? parts.join(' · ') : 'All areas';
@@ -182,7 +182,7 @@ function styleFor(source) { return { color: source.color, weight: 2, fillColor: 
 function focus(feature, layer) { selected = { feature, layer }; const bounds = layer.getBounds ? layer.getBounds() : null; if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16 }); else map.setView(layer.getLatLng(), 16); renderDetails(feature); }
 function renderDetails(feature) {
   const properties = feature.properties || {};
-  const location = ['district', 'sector', 'cell'].map(key => property(feature, key)).filter(Boolean).join(' · ');
+  const location = ['district', 'sector'].map(key => property(feature, key)).filter(Boolean).join(' · ');
   document.querySelector('#detail-title').textContent = featureName(feature);
   document.querySelector('#detail-subtitle').textContent = location || property(feature, 'description') || 'Map feature';
   document.querySelector('#detail-type').textContent = feature.geometry.type.replace('Multi', '').toUpperCase();
