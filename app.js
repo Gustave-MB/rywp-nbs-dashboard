@@ -156,7 +156,7 @@ function zoomToFeature(layer) {
   else map.setView(layer.getLatLng(), 16);
 }
 const escapeHtml = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-function buildPopupContent(feature, layer) {
+function buildPopupContent(feature) {
   const properties = feature.properties || {};
   const location = ['district', 'sector'].map(key => property(feature, key)).filter(Boolean).join(' · ');
   const rows = Object.entries(properties)
@@ -165,12 +165,9 @@ function buildPopupContent(feature, layer) {
   const content = document.createElement('div');
   content.className = 'popup-body';
   content.innerHTML = `
-    <span class="type-chip">${escapeHtml(feature.geometry.type.replace('Multi', '').toUpperCase())}</span>
     <h3 class="popup-title">${escapeHtml(featureName(feature))}</h3>
     <p class="detail-subtitle">${escapeHtml(location || property(feature, 'description') || 'Map feature')}</p>
-    ${rows ? `<div class="detail-divider"></div><dl class="attribute-list">${rows}</dl>` : ''};
-    <button type="button" class="zoom-button">Focus on feature <span>→</span></button>`;
-  content.querySelector('.zoom-button').addEventListener('click', () => zoomToFeature(layer));
+    ${rows ? `<div class="detail-divider"></div><dl class="attribute-list">${rows}</dl>` : ''}`;
   return content;
 }
 // Opens the attribute popup where the feature was clicked. It closes with the × button,
@@ -179,7 +176,7 @@ function openFeaturePopup(item, latlng) {
   item.layer.closeTooltip();
   L.popup({ className: 'feature-popup', minWidth: 240, maxWidth: 300, maxHeight: 360, autoPanPadding: [24, 24] })
     .setLatLng(latlng)
-    .setContent(buildPopupContent(item.feature, item.layer))
+    .setContent(buildPopupContent(item.feature))
     .openOn(map);
 }
 function setDashboardMinimized(minimized) {

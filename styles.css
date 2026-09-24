@@ -26,7 +26,5 @@
 .feature-popup .popup-title { margin: 10px 0 4px; font-size: 16px; line-height: 1.25; letter-spacing: -.4px; }
 .feature-popup .detail-subtitle { margin: 0; }
 .feature-popup .detail-divider { margin: 14px 0 4px; }
-.feature-popup .zoom-button { margin-top: 16px; }
-
 /* Layer that failed to load */
 .layer-error { opacity: .5; cursor: default; }
