@@ -13,14 +13,19 @@
   <body>
     <main class="app-shell">
       <aside class="sidebar">
-        <header class="brand">
-          <img src="./logo.png" alt="RYWP Logo" class="brand-logo" style="max-width: 120px; width: 100%; height: auto; display: block; margin: 0 auto;" />
-          <!-- <div class="brand-mark">R</div> -->
-          <!-- <div><h1>RYWP</h1><span>Spatial explorer</span></div> -->
+        <header class="brand">s
+          <div class="brand-mark">A</div>
+          <div><h1>Atlas</h1><span>Spatial explorer</span></div>
         </header>
 
+        <section class="dataset-summary">
+          <div class="eyebrow">ACTIVE CATALOGUE</div>
+          <strong id="feature-count">—</strong>
+          <span>features available to explore</span>
+        </section>
+
         <section class="sidebar-section layers-section">
-          <div class="section-heading"><h2>Map layers</h2></div>
+          <div class="section-heading"><h2>Map layers</h2><span id="visible-count">0/0</span></div>
           <div id="layer-list" class="layer-list"></div>
         </section>
 
@@ -37,7 +42,7 @@
 
       <section class="map-workspace">
         <header class="toolbar">
-          <div class="page-title"><h2>Nature Based Solutions</h2></div>
+          <div class="page-title"></span><h2>Nature Based Solutions</h2></div>
           <div class="toolbar-actions">
             <label class="search"><span>⌕</span><input id="search-input" type="search" placeholder="Search features…" /></label>
             <button id="fit-map" class="icon-button" title="Fit visible data">⤢</button>
@@ -46,47 +51,24 @@
         <div class="map-wrap">
           <div id="map"></div>
           <div id="empty-state" class="empty-state hidden"><strong>No matching features</strong><span>Adjust the search or filters to see data.</span></div>
-
-          <section id="dashboard" class="dashboard-panel" aria-label="Dashboard overview">
-            <header class="dashboard-header">
-              <h3 class="dashboard-title">Overview</h3>
-              <p id="dashboard-scope" class="dashboard-scope">All areas</p>
-              <button id="toggle-dashboard" class="dashboard-toggle" type="button" aria-expanded="true" aria-controls="dashboard-body" title="Minimize dashboard"><span aria-hidden="true"></span></button>
-            </header>
-            <div id="dashboard-body" class="dashboard-body">
-              <div class="dashboard-grid">
-                <div class="dashboard-card" data-metric="forest">
-                  <div class="dashboard-icon">🌳</div>
-                  <div class="dashboard-value">—</div>
-                  <div class="dashboard-label">Forest</div>
-                </div>
-                <div class="dashboard-card" data-metric="agroforest">
-                  <div class="dashboard-icon">🌾</div>
-                  <div class="dashboard-value">—</div>
-                  <div class="dashboard-label">Agroforestry</div>
-                </div>
-                <div class="dashboard-card" data-metric="buffer">
-                  <div class="dashboard-icon">🛡️</div>
-                  <div class="dashboard-value">—</div>
-                  <div class="dashboard-label">Buffer zones</div>
-                </div>
-                <div class="dashboard-card" data-metric="urban">
-                  <div class="dashboard-icon">🌲</div>
-                  <div class="dashboard-value">—</div>
-                  <div class="dashboard-label">Urban trees</div>
-                </div>
-                <div class="dashboard-card" data-metric="open-space">
-                  <div class="dashboard-icon">🛝</div>
-                  <div class="dashboard-value">—</div>
-                  <div class="dashboard-label">Open spaces</div>
-                </div>
-              </div>
-              <p class="dashboard-hint">Click a feature on the map to see its details.</p>
-            </div>
-          </section>
         </div>
       </section>
 
+      <aside id="details-panel" class="details-panel">
+        <div id="details-empty" class="details-empty">
+          <div class="empty-icon">⌖</div>
+          <h2>Select a feature</h2>
+          <p>Click a point or area on the map to inspect its attributes.</p>
+        </div>
+        <article id="details-content" class="details-content hidden">
+          <div class="details-top"><span id="detail-type" class="type-chip">FEATURE</span><button id="close-details" class="close-button" aria-label="Close">×</button></div>
+          <h2 id="detail-title"></h2>
+          <p id="detail-subtitle" class="detail-subtitle"></p>
+          <div class="detail-divider"></div>
+          <dl id="attribute-list" class="attribute-list"></dl>
+          <button id="zoom-detail" class="zoom-button">Focus on feature <span>→</span></button>
+        </article>
+      </aside>
     </main>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/shpjs@latest/dist/shp.js"></script>
