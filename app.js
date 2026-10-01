@@ -2,11 +2,11 @@
 @author: Gustave-MB */
 const catalogue = [
   { id: 'urban-trees', label: 'Urban trees', color: '#09f111', format: 'shapefile', url: './data/Urban-trees.zip' },
-  { id: 'Reforestation', label: 'Reforestation', color: '#066e1e', format: 'shapefile', url: './data/Reforestation.zip' },
-  { id: 'Open spaces', label: 'Open spaces', color: '#087e73', format: 'shapefile', url: './data/Open-spaces.zip' },
-  { id: 'Bufferzones', label: 'Bufferzones', color: '#ecdd08', format: 'shapefile', url: './data/Bufferzones.zip' },
-  { id: 'Agroforestry', label: 'Agroforestry', color: '#a4e60b', format: 'shapefile', url: './data/Agroforestry.zip' },
-  { id: 'Afforestation', label: 'Afforestation', color: '#2a5e1d', format: 'shapefile', url: './data/Afforestation.zip' }
+  { id: 'Reforestation', label: 'Reforestation', color: '#317e43', format: 'shapefile', url: './data/Reforestation.zip' },
+  { id: 'Open spaces', label: 'Open spaces', color: '#0977b6', format: 'shapefile', url: './data/Open-spaces.zip' },
+  { id: 'Bufferzones', label: 'Bufferzones', color: '#f3be5b', format: 'shapefile', url: './data/Bufferzones.zip' },
+  { id: 'Agroforestry', label: 'Agroforestry', color: '#b5f10e', format: 'shapefile', url: './data/Agroforestry.zip' },
+  { id: 'Afforestation', label: 'Afforestation', color: '#2b4718', format: 'shapefile', url: './data/Afforestation.zip' }
   ];
 
 const map = L.map('map', { zoomControl: false, fadeAnimation: false }).setView([-1.945, 30.06], 12);
@@ -23,7 +23,9 @@ const els = {
   district: document.querySelector('#district-filter'), sector: document.querySelector('#sector-filter'), 
   empty: document.querySelector('#empty-state'),
   dashboard: document.querySelector('#dashboard'), dashboardToggle: document.querySelector('#toggle-dashboard'),
-  dashboardScope: document.querySelector('#dashboard-scope')
+  dashboardScope: document.querySelector('#dashboard-scope'), dashboardTitle: document.querySelector('.dashboard-title'),
+  dashboardBody: document.querySelector('#dashboard-body'), dashboardDetails: document.querySelector('#dashboard-details'),
+  featureDetails: document.querySelector('#feature-details-content')
 };
 const filterFields = [{ id: 'intervention', label: 'All interventions', catalogueValue: true }, { id: 'district', label: 'All districts' }, { id: 'sector', label: 'All sectors' }];
 const pretty = key => key.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
@@ -130,13 +132,13 @@ function renderDashboard() {
 function styleFor(source) { return { color: source.color, weight: 2, fillColor: source.color, fillOpacity: .3 }; }
 function zoomToFeature(layer) {
   const bounds = layer.getBounds ? layer.getBounds() : null;
-  if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 18 });
-  else map.setView(layer.getLatLng(), 16);
+  if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 18, animate: false });
+  else map.setView(layer.getLatLng(), 16, { animate: false });
 }
 function focusFeature(layer) {
   const bounds = layer.getBounds ? layer.getBounds() : null;
-  if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16 });
-  else if (layer.getLatLng) map.setView(layer.getLatLng(), 16);
+  if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16, animate: false });
+  else if (layer.getLatLng) map.setView(layer.getLatLng(), 16, { animate: false });
 }
 function highlightFeature(item) {
   if (highlightedItem && highlightedItem !== item) {
@@ -151,10 +153,10 @@ function highlightFeature(item) {
   }
   highlightedItem = item;
   item.layer.setStyle?.({
-    color: '#ff7a00',
+    color: '#00ffea',
     weight: 4,
-    fillColor: '#ffb000',
-    fillOpacity: item.isPoint ? 1 : .45,
+    fillColor: '#00f7ff',
+    fillOpacity: item.isPoint ? 1 : .3,
     radius: 10
   });
   item.layer.bringToFront?.();
@@ -174,26 +176,34 @@ function clearFeatureHighlight() {
 const escapeHtml = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 function buildPopupContent(feature) {
   const properties = feature.properties || {};
-  const location = ['district', 'sector'].map(key => property(feature, key)).filter(Boolean).join(' · ');
+  const type = property(feature, 'type') || '—';
   const rows = Object.entries(properties)
-    .filter(([key]) => !['name', 'description'].includes(key.toLowerCase()))
+    .filter(([key]) => !['name', 'description', 'type', 'phase'].includes(key.toLowerCase()))
     .map(([key, value]) => `<div><dt>${escapeHtml(pretty(key))}</dt><dd>${escapeHtml(value ?? '—')}</dd></div>`).join('');
   const content = document.createElement('div');
   content.className = 'popup-body';
   content.innerHTML = `
     <h3 class="popup-title">${escapeHtml(featureName(feature))}</h3>
-    <p class="detail-subtitle">${escapeHtml(location || property(feature, 'description') || 'Map feature')}</p>
+    <p class="detail-subtitle">${escapeHtml(type)}</p>
     ${rows ? `<div class="detail-divider"></div><dl class="attribute-list">${rows}</dl>` : ''}`;
   return content;
 }
-// Opens the attribute popup where the feature was clicked. It closes with the × button,
-// the Esc key, or a click on empty map; opening another feature replaces it.
-function openFeaturePopup(item, latlng) {
+// Replace the dashboard overview with the clicked feature's attributes.
+function showFeatureDetails(item) {
   item.layer.closeTooltip();
-  L.popup({ className: 'feature-popup', minWidth: 240, maxWidth: 300, maxHeight: 360, autoPanPadding: [24, 24] })
-    .setLatLng(latlng)
-    .setContent(buildPopupContent(item.feature))
-    .openOn(map);
+  els.dashboard.classList.add('showing-details');
+  els.dashboardBody.classList.add('hidden');
+  els.dashboardDetails.classList.remove('hidden');
+  els.dashboard.classList.remove('is-minimized');
+  els.dashboardToggle.setAttribute('aria-expanded', 'true');
+  els.featureDetails.replaceChildren(buildPopupContent(item.feature));
+}
+function showDashboardOverview() {
+  els.dashboard.classList.remove('showing-details');
+  els.dashboardTitle.textContent = 'Overview';
+  els.dashboardScope.textContent = currentAdminScopeLabel();
+  els.dashboardDetails.classList.add('hidden');
+  els.dashboardBody.classList.remove('hidden');
 }
 function setDashboardMinimized(minimized) {
   els.dashboard.classList.toggle('is-minimized', minimized);
@@ -254,7 +264,7 @@ function markLayerFailed(source, error) {
   els.layerList.insertAdjacentHTML('beforeend', `<div class="layer-row layer-error" title="Could not load ${source.url}"><i class="layer-swatch" style="background:${source.color}"></i><span>${source.label}</span><span class="layer-meta">unavailable</span></div>`);
 }
 function addLayer(source, data) {
-  const group = L.geoJSON(data, { style: () => styleFor(source), pointToLayer: (_, latlng) => L.circleMarker(latlng, { radius: 7, color: '#fff', weight: 2, fillColor: source.color, fillOpacity: 1 }), onEachFeature: (feature, layer) => { const item = { feature, layer, source, isPoint: feature.geometry.type.includes('Point'), isLine: /LineString/.test(feature.geometry.type), show: true }; allFeatures.push(item); layer.on('click', event => { if (!item.show) return; clearFeatureHighlight(); highlightFeature(item); if (item.isLine) zoomToFeature(layer); else focusFeature(layer); openFeaturePopup(item, event.latlng); }); layer.bindTooltip(featureName(feature), { direction: 'top', offset: [0, -8] }); } }).addTo(map);
+  const group = L.geoJSON(data, { style: () => styleFor(source), pointToLayer: (_, latlng) => L.circleMarker(latlng, { radius: 7, color: '#fff', weight: 2, fillColor: source.color, fillOpacity: 1 }), onEachFeature: (feature, layer) => { const item = { feature, layer, source, isPoint: feature.geometry.type.includes('Point'), isLine: /LineString/.test(feature.geometry.type), show: true }; allFeatures.push(item); layer.on('click', () => { if (!item.show) return; clearFeatureHighlight(); highlightFeature(item); if (item.isLine) zoomToFeature(layer); else focusFeature(layer); showFeatureDetails(item); }); layer.bindTooltip(featureName(feature), { direction: 'top', offset: [0, -8] }); } }).addTo(map);
   layers.set(source.id, group);
   const toggleId = `toggle-${slug(source.id)}`;
   els.layerList.insertAdjacentHTML('beforeend', `<label class="layer-row"><input id="${toggleId}" type="checkbox" checked><i class="layer-swatch" style="background:${source.color}"></i><span>${source.label}</span></label>`);
@@ -286,5 +296,6 @@ filterFields.forEach(field => els[field.id].addEventListener('change', () => { p
 document.querySelector('#clear-filters').addEventListener('click', () => { els.search.value = ''; filterFields.forEach(field => els[field.id].value = 'all'); populateFilters(); refresh(); fitVisible(); renderDashboard(); });
 document.querySelector('#fit-map').addEventListener('click', fitVisible);
 els.dashboardToggle.addEventListener('click', () => setDashboardMinimized(!els.dashboard.classList.contains('is-minimized')));
+document.querySelector('#back-to-overview').addEventListener('click', showDashboardOverview);
 if (window.matchMedia('(max-width: 680px)').matches) setDashboardMinimized(true); // start minimized on phones
 loadData().catch(error => console.error('Could not load map data', error));
