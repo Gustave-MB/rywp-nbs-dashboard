@@ -16,6 +16,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19,
 const layers = new Map();
 const layerToggles = new Map();
 const allFeatures = [];
+let highlightedItem = null;
 const sourceState = new Map(); // layer label -> 'loaded' | 'failed' (absent while still loading)
 const els = {
   layerList: document.querySelector('#layer-list'), search: document.querySelector('#search-input'), intervention: document.querySelector('#intervention-filter'),
@@ -126,11 +127,49 @@ function renderDashboard() {
   });
 }
 
-function styleFor(source) { return { color: source.color, weight: 2, fillColor: source.color, fillOpacity: .16 }; }
+function styleFor(source) { return { color: source.color, weight: 2, fillColor: source.color, fillOpacity: .3 }; }
 function zoomToFeature(layer) {
   const bounds = layer.getBounds ? layer.getBounds() : null;
-  if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16 });
+  if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 18 });
   else map.setView(layer.getLatLng(), 16);
+}
+function focusFeature(layer) {
+  const bounds = layer.getBounds ? layer.getBounds() : null;
+  if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 16 });
+  else if (layer.getLatLng) map.setView(layer.getLatLng(), 16);
+}
+function highlightFeature(item) {
+  if (highlightedItem && highlightedItem !== item) {
+    const previous = highlightedItem;
+    previous.layer.setStyle?.({
+      color: previous.source.color,
+      weight: 2,
+      fillColor: previous.source.color,
+      fillOpacity: previous.isPoint ? 1 : .3,
+      radius: 7
+    });
+  }
+  highlightedItem = item;
+  item.layer.setStyle?.({
+    color: '#ff7a00',
+    weight: 4,
+    fillColor: '#ffb000',
+    fillOpacity: item.isPoint ? 1 : .45,
+    radius: 10
+  });
+  item.layer.bringToFront?.();
+}
+function clearFeatureHighlight() {
+  if (!highlightedItem) return;
+  const previous = highlightedItem;
+  previous.layer.setStyle?.({
+    color: previous.isPoint ? '#fff' : previous.source.color,
+    weight: previous.isPoint ? 2 : 2,
+    fillColor: previous.source.color,
+    fillOpacity: previous.isPoint ? 1 : .3,
+    radius: 7
+  });
+  highlightedItem = null;
 }
 const escapeHtml = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 function buildPopupContent(feature) {
@@ -171,7 +210,13 @@ function refresh() {
   let visible = 0;
   allFeatures.forEach(item => {
     const show = (layerToggles.get(item.source.id)?.checked ?? true) && matches(item);
-    item.layer.setStyle?.({ opacity: show ? 1 : 0, fillOpacity: show ? (item.isPoint ? 1 : .16) : 0 });
+    const group = layers.get(item.source.id);
+    if (show && group && !group.hasLayer(item.layer)) group.addLayer(item.layer);
+    else if (!show && group?.hasLayer(item.layer)) {
+      item.layer.closeTooltip();
+      if (highlightedItem === item) clearFeatureHighlight();
+      group.removeLayer(item.layer);
+    }
     item.show = show; if (show) visible += 1;
   });
   els.empty.classList.toggle('hidden', visible !== 0);
@@ -209,7 +254,7 @@ function markLayerFailed(source, error) {
   els.layerList.insertAdjacentHTML('beforeend', `<div class="layer-row layer-error" title="Could not load ${source.url}"><i class="layer-swatch" style="background:${source.color}"></i><span>${source.label}</span><span class="layer-meta">unavailable</span></div>`);
 }
 function addLayer(source, data) {
-  const group = L.geoJSON(data, { style: () => styleFor(source), pointToLayer: (_, latlng) => L.circleMarker(latlng, { radius: 7, color: '#fff', weight: 2, fillColor: source.color, fillOpacity: 1 }), onEachFeature: (feature, layer) => { const item = { feature, layer, source, isPoint: feature.geometry.type.includes('Point'), show: true }; allFeatures.push(item); layer.on('click', event => { if (!item.show) return; zoomToFeature(layer); openFeaturePopup(item, event.latlng); }); layer.bindTooltip(featureName(feature), { direction: 'top', offset: [0, -8] }); } }).addTo(map);
+  const group = L.geoJSON(data, { style: () => styleFor(source), pointToLayer: (_, latlng) => L.circleMarker(latlng, { radius: 7, color: '#fff', weight: 2, fillColor: source.color, fillOpacity: 1 }), onEachFeature: (feature, layer) => { const item = { feature, layer, source, isPoint: feature.geometry.type.includes('Point'), isLine: /LineString/.test(feature.geometry.type), show: true }; allFeatures.push(item); layer.on('click', event => { if (!item.show) return; clearFeatureHighlight(); highlightFeature(item); if (item.isLine) zoomToFeature(layer); else focusFeature(layer); openFeaturePopup(item, event.latlng); }); layer.bindTooltip(featureName(feature), { direction: 'top', offset: [0, -8] }); } }).addTo(map);
   layers.set(source.id, group);
   const toggleId = `toggle-${slug(source.id)}`;
   els.layerList.insertAdjacentHTML('beforeend', `<label class="layer-row"><input id="${toggleId}" type="checkbox" checked><i class="layer-swatch" style="background:${source.color}"></i><span>${source.label}</span></label>`);
