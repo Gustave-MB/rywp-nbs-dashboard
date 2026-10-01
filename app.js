@@ -44,29 +44,8 @@ const DASHBOARD_METRICS = [
   { key: 'urban', filterLabels: ['Urban trees'] },
   { key: 'open-space', filterLabels: ['Open spaces'] }
 ];
-const EARTH_RADIUS_M = 6378137;
-const toRad = deg => deg * Math.PI / 180;
-function ringArea(ring) {
-  let total = 0;
-  for (let i = 0; i < ring.length; i++) {
-    const [lng1, lat1] = ring[i], [lng2, lat2] = ring[(i + 1) % ring.length];
-    total += toRad(lng2 - lng1) * (2 + Math.sin(toRad(lat1)) + Math.sin(toRad(lat2)));
-  }
-  return Math.abs(total * EARTH_RADIUS_M * EARTH_RADIUS_M / 2);
-}
-function polygonArea(coordinates) {
-  if (!coordinates?.length) return 0;
-  return coordinates.reduce((area, ring, i) => i === 0 ? area + ringArea(ring) : area - ringArea(ring), 0);
-}
-function haversine([lng1, lat1], [lng2, lat2]) {
-  const dPhi = toRad(lat2 - lat1), dLambda = toRad(lng2 - lng1);
-  const h = Math.sin(dPhi / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLambda / 2) ** 2;
-  return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h));
-}
-function lineLength(coordinates) { let total = 0; for (let i = 1; i < coordinates.length; i++) total += haversine(coordinates[i - 1], coordinates[i]); return total; }
-
-// Names are matched case/space/underscore-insensitively; add more variants here if a dataset
-// uses a field name not listed. Falls back to the geodesic calculation when no field matches.
+// Read area and length from the shapefile attributes. Names are matched
+// case/space/underscore-insensitively; add variants here for other datasets.
 const AREA_FIELD_CANDIDATES = [
   { names: ['area_ha', 'AREA', 'ha'], toSqm: v => v * 10000 },
   { names: ['area_sqm', 'area_m2', 'aream2', 'shape_area', 'st_area', 'area'], toSqm: v => v }
@@ -95,14 +74,12 @@ function featureMetric(feature) {
   if (type === 'Polygon' || type === 'MultiPolygon') {
     const found = findFieldValue(feature, AREA_FIELD_CANDIDATES);
     if (found) return { kind: 'area', value: found.convert(found.value) };
-    const area = type === 'Polygon' ? polygonArea(coords) : (coords || []).reduce((sum, poly) => sum + polygonArea(poly), 0);
-    return { kind: 'area', value: area };
+    return { kind: 'count', value: 1 };
   }
   if (type === 'LineString' || type === 'MultiLineString') {
     const found = findFieldValue(feature, LENGTH_FIELD_CANDIDATES);
     if (found) return { kind: 'length', value: found.convert(found.value) };
-    const length = type === 'LineString' ? lineLength(coords) : (coords || []).reduce((sum, line) => sum + lineLength(line), 0);
-    return { kind: 'length', value: length };
+    return { kind: 'count', value: 1 };
   }
   if (type === 'MultiPoint') return { kind: 'count', value: (coords || []).length };
   return { kind: 'count', value: type ? 1 : 0 };
