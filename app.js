@@ -11,7 +11,18 @@ const catalogue = [
 
 const map = L.map('map', { zoomControl: false, fadeAnimation: false }).setView([-1.945, 30.06], 12);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+const basemaps = {
+  streets: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }),
+  satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri' }),
+  terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap' })
+};
+basemaps.streets.addTo(map);
+document.querySelector('#basemap-select').addEventListener('change', event => {
+  const nextBasemap = basemaps[event.target.value];
+  if (!nextBasemap || map.hasLayer(nextBasemap)) return;
+  Object.values(basemaps).forEach(layer => { if (map.hasLayer(layer)) map.removeLayer(layer); });
+  nextBasemap.addTo(map);
+});
 
 const layers = new Map();
 const layerToggles = new Map();
