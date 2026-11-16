@@ -2,11 +2,11 @@
 @author: Gustave-MB */
 const catalogue = [
   { id: 'urban-trees', label: 'Urban trees', color: '#09f111', format: 'shapefile', url: './data/Urban-trees.zip' },
-  { id: 'Reforestation', label: 'Reforestation', color: '#317e43', format: 'shapefile', url: './data/Reforestation.zip' },
-  { id: 'Open spaces', label: 'Open spaces', color: '#0977b6', format: 'shapefile', url: './data/Open-spaces.zip' },
-  { id: 'Bufferzones', label: 'Bufferzones', color: '#f3be5b', format: 'shapefile', url: './data/Bufferzones.zip' },
+  { id: 'Reforestation', label: 'Reforestation', color: '#c50af3', format: 'shapefile', url: './data/Reforestation.zip' },
+  { id: 'Open spaces', label: 'Open spaces', color: '#2b4718', format: 'shapefile', url: './data/Open-spaces.zip' },
+  { id: 'Bufferzones', label: 'Bufferzones', color: '#0530f0', format: 'shapefile', url: './data/Bufferzones.zip' },
   { id: 'Agroforestry', label: 'Agroforestry', color: '#b5f10e', format: 'shapefile', url: './data/Agroforestry.zip' },
-  { id: 'Afforestation', label: 'Afforestation', color: '#2b4718', format: 'shapefile', url: './data/Afforestation.zip' }
+  { id: 'Afforestation', label: 'Afforestation', color: '#a00808', format: 'shapefile', url: './data/Afforestation.zip' }
   ];
 
 const map = L.map('map', { zoomControl: false, fadeAnimation: false }).setView([-1.945, 30.06], 12);
@@ -129,7 +129,7 @@ function renderDashboard() {
   });
 }
 
-function styleFor(source) { return { color: source.color, weight: 2, fillColor: source.color, fillOpacity: .3 }; }
+function styleFor(source) { return { color: source.color, weight: 2, fillColor: source.color, fillOpacity: .5 }; }
 function zoomToFeature(layer) {
   const bounds = layer.getBounds ? layer.getBounds() : null;
   if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 18, animate: false });
@@ -147,7 +147,7 @@ function highlightFeature(item) {
       color: previous.source.color,
       weight: 2,
       fillColor: previous.source.color,
-      fillOpacity: previous.isPoint ? 1 : .3,
+      fillOpacity: previous.isPoint ? 1 : .5,
       radius: 7
     });
   }
@@ -156,7 +156,7 @@ function highlightFeature(item) {
     color: '#00ffea',
     weight: 4,
     fillColor: '#00f7ff',
-    fillOpacity: item.isPoint ? 1 : .3,
+    fillOpacity: item.isPoint ? 1 : .5,
     radius: 10
   });
   item.layer.bringToFront?.();
@@ -168,7 +168,7 @@ function clearFeatureHighlight() {
     color: previous.isPoint ? '#fff' : previous.source.color,
     weight: previous.isPoint ? 2 : 2,
     fillColor: previous.source.color,
-    fillOpacity: previous.isPoint ? 1 : .3,
+    fillOpacity: previous.isPoint ? 1 : .5,
     radius: 7
   });
   highlightedItem = null;
