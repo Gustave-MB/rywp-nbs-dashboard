@@ -2,8 +2,8 @@
 @author: Gustave-MB */
 const catalogue = [
   { id: 'urban-trees', label: 'Urban trees', color: '#09f111', format: 'shapefile', url: './data/Urban-trees.zip' },
-  { id: 'Reforestation', label: 'Reforestation', color: '#c50af3', format: 'shapefile', url: './data/Reforestation.zip' },
-  { id: 'Open spaces', label: 'Open spaces', color: '#2b4718', format: 'shapefile', url: './data/Open-spaces.zip' },
+  { id: 'Reforestation', label: 'Reforestation', color: '#2b4718', format: 'shapefile', url: './data/Reforestation.zip' },
+  { id: 'Open-spaces', label: 'Open spaces', color: '#eb0ed8', format: 'shapefile', url: './data/Open-spaces.zip' },
   { id: 'Bufferzones', label: 'Bufferzones', color: '#0530f0', format: 'shapefile', url: './data/Bufferzones.zip' },
   { id: 'Agroforestry', label: 'Agroforestry', color: '#b5f10e', format: 'shapefile', url: './data/Agroforestry.zip' },
   { id: 'Afforestation', label: 'Afforestation', color: '#a00808', format: 'shapefile', url: './data/Afforestation.zip' }
