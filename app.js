@@ -8,7 +8,7 @@ const catalogue = [
   { id: 'Agroforestry', label: 'Agroforestry', color: '#b5f10e', format: 'shapefile', url: './data/Agroforestry.zip' },
   { id: 'Green-city-school', label: 'Green city club school', color: '#f39304', format: 'shapefile', url: './data/Green-City-club-schools.zip' },
   { id: 'Green-city-IDPMV', label: 'Green city club IDPMV', color: '#131212', format: 'shapefile', url: './data/Green-City-club-IDPMVs.zip' },
-  { id: 'Institutions', label: 'Institutions', color: '#f51010', format: 'shapefile', url: './data/Insitutions.zip' }
+  { id: 'Institutions', label: 'Public institutions', color: '#f51010', format: 'shapefile', url: './data/Insitutions.zip' }
   ]; 
 
 const map = L.map('map', { zoomControl: false, fadeAnimation: false }).setView([-1.945, 30.06], 12);
