@@ -6,8 +6,8 @@ const catalogue = [
   { id: 'Open-spaces', label: 'Open spaces', color: '#2b4718', format: 'shapefile', url: './data/Open-spaces.zip' },
   { id: 'Bufferzones', label: 'Bufferzones', color: '#0530f0', format: 'shapefile', url: './data/Bufferzones.zip' },
   { id: 'Agroforestry', label: 'Agroforestry', color: '#b5f10e', format: 'shapefile', url: './data/Agroforestry.zip' },
-  { id: 'Green-city-school', label: 'Green city club school', color: '#f39304', format: 'shapefile', url: './data/Green-City-club-schools.zip' },
-  { id: 'Green-city-IDPMV', label: 'Green city club IDPMV', color: '#131212', format: 'shapefile', url: './data/Green-City-club-IDPMVs.zip' },
+  { id: 'Green-city-school', label: 'Green city clubs school', color: '#f39304', format: 'shapefile', url: './data/Green-City-club-schools.zip' },
+  { id: 'Green-city-IDPMV', label: 'Green city clubs IDPMV', color: '#131212', format: 'shapefile', url: './data/Green-City-club-IDPMVs.zip' },
   { id: 'Institutions', label: 'Public institutions', color: '#f51010', format: 'shapefile', url: './data/Insitutions.zip' }
   ]; 
 
@@ -70,7 +70,7 @@ const DASHBOARD_METRICS = [
   { key: 'buffer', filterLabels: ['Bufferzones'] },
   { key: 'urban', filterLabels: ['Urban trees'] },
   { key: 'open-space', filterLabels: ['Open spaces'] },
-  { key: 'green-city-club', filterLabels: ['Green city club IDPMV', 'Green city club school'] }
+  { key: 'green-city-club', filterLabels: ['Green city clubs IDPMV', 'Green city clubs school'] }
 ];
 // Read area and length from the shapefile attributes. Names are matched
 // case/space/underscore-insensitively; add variants here for other datasets.
@@ -83,7 +83,7 @@ const LENGTH_FIELD_CANDIDATES = [
   { names: ['length_m', 'lengthm', 'length', 'shape_leng', 'shape_length', 'st_length', 'perimeter', 'len'], toM: v => v }
 ];
 const NUMBER_OF_TREES_FIELD_CANDIDATES = [
-  { names: ['number_of_trees', 'trees'], toM: v => v }
+  { names: ['number_of_trees', 'Trees'], toM: v => v }
 ];
 const keyToken = key => key.toLowerCase().replace(/[^a-z0-9]/g, '');
 function findFieldValue(feature, candidates) {
