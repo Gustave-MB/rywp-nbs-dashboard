@@ -6,9 +6,10 @@ const catalogue = [
   { id: 'Open-spaces', label: 'Open spaces', color: '#2b4718', format: 'shapefile', url: './data/Open-spaces.zip' },
   { id: 'Bufferzones', label: 'Bufferzones', color: '#0530f0', format: 'shapefile', url: './data/Bufferzones.zip' },
   { id: 'Agroforestry', label: 'Agroforestry', color: '#b5f10e', format: 'shapefile', url: './data/Agroforestry.zip' },
-  { id: 'Green-city-school', label: 'Green city school', color: '#f39304', format: 'shapefile', url: './data/Green-City-club-schools.zip' },
-  { id: 'Green-city-IDPMV', label: 'Green city IDPMV', color: '#131212', format: 'shapefile', url: './data/Green-City-club-IDPMVs.zip' }
-  ];
+  { id: 'Green-city-school', label: 'Green city club school', color: '#f39304', format: 'shapefile', url: './data/Green-City-club-schools.zip' },
+  { id: 'Green-city-IDPMV', label: 'Green city club IDPMV', color: '#131212', format: 'shapefile', url: './data/Green-City-club-IDPMVs.zip' },
+  { id: 'Institutions', label: 'Institutions', color: '#f51010', format: 'shapefile', url: './data/Insitutions.zip' }
+  ]; 
 
 const map = L.map('map', { zoomControl: false, fadeAnimation: false }).setView([-1.945, 30.06], 12);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -18,12 +19,23 @@ const basemaps = {
   terrain: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap' })
 };
 basemaps.streets.addTo(map);
+const basemapNotice = document.createElement('div');
+basemapNotice.className = 'basemap-notice hidden';
+basemapNotice.setAttribute('role', 'status');
+basemapNotice.textContent = 'Basemap tiles could not load. Check your internet connection and reload.';
+document.querySelector('.map-wrap').append(basemapNotice);
+Object.values(basemaps).forEach(layer => {
+  layer.on('tileerror', () => basemapNotice.classList.remove('hidden'));
+  layer.on('tileload', () => basemapNotice.classList.add('hidden'));
+});
 document.querySelector('#basemap-select').addEventListener('change', event => {
   const nextBasemap = basemaps[event.target.value];
   if (!nextBasemap || map.hasLayer(nextBasemap)) return;
   Object.values(basemaps).forEach(layer => { if (map.hasLayer(layer)) map.removeLayer(layer); });
   nextBasemap.addTo(map);
 });
+window.addEventListener('resize', () => map.invalidateSize({ pan: false }));
+requestAnimationFrame(() => map.invalidateSize({ pan: false }));
 
 const layers = new Map();
 const layerToggles = new Map();
@@ -57,7 +69,8 @@ const DASHBOARD_METRICS = [
   { key: 'agroforest', filterLabels: ['Agroforestry'] },
   { key: 'buffer', filterLabels: ['Bufferzones'] },
   { key: 'urban', filterLabels: ['Urban trees'] },
-  { key: 'open-space', filterLabels: ['Open spaces'] }
+  { key: 'open-space', filterLabels: ['Open spaces'] },
+  { key: 'green-city-club', filterLabels: ['Green city club IDPMV', 'Green city club school'] }
 ];
 // Read area and length from the shapefile attributes. Names are matched
 // case/space/underscore-insensitively; add variants here for other datasets.
@@ -68,6 +81,9 @@ const AREA_FIELD_CANDIDATES = [
 const LENGTH_FIELD_CANDIDATES = [
   { names: ['length_km', 'LENGTH', 'lenkm'], toM: v => v * 1000 },
   { names: ['length_m', 'lengthm', 'length', 'shape_leng', 'shape_length', 'st_length', 'perimeter', 'len'], toM: v => v }
+];
+const NUMBER_OF_TREES_FIELD_CANDIDATES = [
+  { names: ['number_of_trees', 'trees'], toM: v => v }
 ];
 const keyToken = key => key.toLowerCase().replace(/[^a-z0-9]/g, '');
 function findFieldValue(feature, candidates) {
@@ -96,12 +112,16 @@ function featureMetric(feature) {
     if (found) return { kind: 'length', value: found.convert(found.value) };
     return { kind: 'count', value: 1 };
   }
-  if (type === 'MultiPoint') return { kind: 'count', value: (coords || []).length };
+  if (type === 'MultiPoint' || type === 'Point') {
+    const found = findFieldValue(feature, NUMBER_OF_TREES_FIELD_CANDIDATES);
+    if (found) return { kind: 'trees', value: found.convert(found.value) };
+  }
   return { kind: 'count', value: type ? 1 : 0 };
 }
-function formatMetric(kind, value) {
+function formatMetric(kind, value, metricKey) {
   if (kind === 'area') return `${(value / 10000).toLocaleString(undefined, { maximumFractionDigits: 1 })} ha`;
   if (kind === 'length') return `${(value / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 })} km`;
+  if (kind === 'trees') return `${(value).toLocaleString(undefined, { maximumFractionDigits: 1 })} trees`;
   return `${value.toLocaleString()} ${value === 1 ? 'feature' : 'features'}`;
 }
 function computeDashboardStats() {
@@ -111,9 +131,9 @@ function computeDashboardStats() {
       if (!group.filterLabels.includes(item.source.label)) return false;
       return adminFields.every(id => els[id].value === 'all' || normalized(property(item.feature, id)) === els[id].value);
     });
-    const totals = { area: 0, length: 0, count: 0 };
+    const totals = { area: 0, length: 0, trees: 0, count: 0 };
     items.forEach(item => { const m = featureMetric(item.feature); totals[m.kind] += m.value; });
-    const kind = totals.area > 0 ? 'area' : totals.length > 0 ? 'length' : 'count';
+    const kind = totals.area > 0 ? 'area' : totals.length > 0 ? 'length' : totals.trees > 0 ? 'trees': 'count';
     return { ...group, featureCount: items.length, kind, value: totals[kind] };
   });
 }
@@ -137,7 +157,7 @@ function renderDashboard() {
       return;
     }
     card.removeAttribute('title');
-    value.textContent = formatMetric(stat.kind, stat.value);
+    value.textContent = formatMetric(stat.kind, stat.value, stat.key);
   });
 }
 
@@ -202,7 +222,7 @@ function buildPopupContent(feature) {
   const properties = feature.properties || {};
   const type = property(feature, 'type') || '—';
   const rows = Object.entries(properties)
-    .filter(([key]) => !['name', 'description', 'type', 'phase', 'path', 'schools', 'idpmv name', 'latitude', 'longitude', 'elevation'].includes(key.toLowerCase()))
+    .filter(([key]) => !['name', 'description', 'type', 'phase', 'path', 'schools', 'idpmv name', 'latitude', 'longitude', 'elevation', 'progress', 'no'].includes(key.toLowerCase()))
     .map(([key, value]) => `<div><dt>${escapeHtml(pretty(key))}</dt><dd>${escapeHtml(value ?? '—')}</dd></div>`).join('');
   const content = document.createElement('div');
   content.className = 'popup-body';
@@ -274,7 +294,18 @@ function populateFilters() {
     select.value = values.has(priorValue) ? priorValue : 'all';
   });
 }
-function fitVisible() { const shown = allFeatures.filter(item => item.show).map(item => item.layer); if (shown.length) map.fitBounds(L.featureGroup(shown).getBounds(), { padding: [45, 45], maxZoom: 16 }); }
+function hasGeographicBounds(layer) {
+  const bounds = layer.getBounds?.();
+  if (!bounds?.isValid()) return false;
+  const southWest = bounds.getSouthWest(), northEast = bounds.getNorthEast();
+  return [southWest.lat, southWest.lng, northEast.lat, northEast.lng].every(Number.isFinite)
+    && southWest.lat >= -90 && northEast.lat <= 90
+    && southWest.lng >= -180 && northEast.lng <= 180;
+}
+function fitVisible() {
+  const shown = allFeatures.filter(item => item.show && hasGeographicBounds(item.layer)).map(item => item.layer);
+  if (shown.length) map.fitBounds(L.featureGroup(shown).getBounds(), { padding: [45, 45], maxZoom: 16 });
+}
 async function getSourceData(source) { if (source.format === 'shapefile') return shp(source.url); const response = await fetch(source.url); if (!response.ok) throw new Error(`Could not load ${source.url}`); return response.json(); }
 // shpjs returns an array of FeatureCollections when a ZIP holds more than one shapefile;
 // merge them so every layer is handled as a single FeatureCollection.

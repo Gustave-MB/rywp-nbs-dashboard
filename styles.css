@@ -40,3 +40,5 @@
 .layer-error { opacity: .5; cursor: default; }
 .point-marker-wrap{background:transparent;border:0}.point-marker{display:block;width:18px;height:23px;filter:drop-shadow(0 1px 2px #14211f66);transition:transform .12s ease,filter .12s ease}.point-marker.is-highlighted{transform:scale(1.18);filter:drop-shadow(0 2px 4px #14211f99)}
 @media(max-width:680px){.basemap-section{display:block;margin:14px 0 0;padding:0 5px}.basemap-section .section-heading{margin-bottom:6px}}
+
+.basemap-notice{position:absolute;z-index:600;top:16px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);padding:9px 12px;border-radius:8px;background:#fff4e5;color:#744b18;box-shadow:0 2px 12px #243b3422;font-size:11px;text-align:center}
