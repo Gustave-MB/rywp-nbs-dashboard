@@ -38,4 +38,5 @@
 .feature-popup .detail-divider { margin: 14px 0 4px; }
 /* Layer that failed to load */
 .layer-error { opacity: .5; cursor: default; }
+.point-marker-wrap{background:transparent;border:0}.point-marker{display:block;width:18px;height:23px;filter:drop-shadow(0 1px 2px #14211f66);transition:transform .12s ease,filter .12s ease}.point-marker.is-highlighted{transform:scale(1.18);filter:drop-shadow(0 2px 4px #14211f99)}
 @media(max-width:680px){.basemap-section{display:block;margin:14px 0 0;padding:0 5px}.basemap-section .section-heading{margin-bottom:6px}}

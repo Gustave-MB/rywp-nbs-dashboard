@@ -6,7 +6,8 @@ const catalogue = [
   { id: 'Open-spaces', label: 'Open spaces', color: '#2b4718', format: 'shapefile', url: './data/Open-spaces.zip' },
   { id: 'Bufferzones', label: 'Bufferzones', color: '#0530f0', format: 'shapefile', url: './data/Bufferzones.zip' },
   { id: 'Agroforestry', label: 'Agroforestry', color: '#b5f10e', format: 'shapefile', url: './data/Agroforestry.zip' },
-  { id: 'Afforestation', label: 'Afforestation', color: '#a00808', format: 'shapefile', url: './data/Afforestation.zip' }
+  { id: 'Green-city-school', label: 'Green city school', color: '#f39304', format: 'shapefile', url: './data/Green-City-club-schools.zip' },
+  { id: 'Green-city-IDPMV', label: 'Green city IDPMV', color: '#131212', format: 'shapefile', url: './data/Green-City-club-IDPMVs.zip' }
   ];
 
 const map = L.map('map', { zoomControl: false, fadeAnimation: false }).setView([-1.945, 30.06], 12);
@@ -42,7 +43,7 @@ const filterFields = [{ id: 'intervention', label: 'All interventions', catalogu
 const pretty = key => key.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
 const slug = value => String(value).replace(/[^a-zA-Z0-9_-]+/g, '-');
 const property = (feature, key) => Object.entries(feature.properties || {}).find(([name]) => name.toLowerCase() === key.toLowerCase())?.[1];
-const featureName = feature => property(feature, 'name') || property(feature, 'title') || property(feature, 'id') || 'Untitled feature';
+const featureName = feature => property(feature, 'name') || property(feature, 'title') || property(feature, 'id') || property(feature, 'SCHOOLS')|| property(feature, 'IDPMV NAME') || 'Untitled feature';
 const normalized = value => String(value ?? '').trim().toLocaleLowerCase();
 const filterValue = (item, field) => field.catalogueValue ? item.source.label : property(item.feature, field.id);
 
@@ -141,6 +142,15 @@ function renderDashboard() {
 }
 
 function styleFor(source) { return { color: source.color, weight: 2, fillColor: source.color, fillOpacity: .5 }; }
+function pointIcon(color, highlighted = false) {
+  const fill = highlighted ? '#00f7ff' : color;
+  const stroke = highlighted ? '#00a99f' : '#fff';
+  return L.divIcon({
+    className: 'point-marker-wrap',
+    html: `<svg class="point-marker${highlighted ? ' is-highlighted' : ''}" viewBox="0 0 24 30" aria-hidden="true"><path d="M12 1.5C6.2 1.5 1.5 6.2 1.5 12c0 7.1 10.5 16.3 10.5 16.3S22.5 19.1 22.5 12C22.5 6.2 17.8 1.5 12 1.5Z" fill="${fill}" stroke="${stroke}" stroke-width="2"/><circle cx="12" cy="12" r="3.2" fill="#fff"/></svg>`,
+    iconSize: [18, 23], iconAnchor: [9, 22], popupAnchor: [0, -20]
+  });
+}
 function zoomToFeature(layer) {
   const bounds = layer.getBounds ? layer.getBounds() : null;
   if (bounds?.isValid()) map.fitBounds(bounds, { padding: [70, 70], maxZoom: 18, animate: false });
@@ -154,6 +164,7 @@ function focusFeature(layer) {
 function highlightFeature(item) {
   if (highlightedItem && highlightedItem !== item) {
     const previous = highlightedItem;
+    if (previous.isPoint) previous.layer.setIcon(pointIcon(previous.source.color));
     previous.layer.setStyle?.({
       color: previous.source.color,
       weight: 2,
@@ -163,6 +174,7 @@ function highlightFeature(item) {
     });
   }
   highlightedItem = item;
+  if (item.isPoint) item.layer.setIcon(pointIcon(item.source.color, true));
   item.layer.setStyle?.({
     color: '#00ffea',
     weight: 4,
@@ -175,6 +187,7 @@ function highlightFeature(item) {
 function clearFeatureHighlight() {
   if (!highlightedItem) return;
   const previous = highlightedItem;
+  if (previous.isPoint) previous.layer.setIcon(pointIcon(previous.source.color));
   previous.layer.setStyle?.({
     color: previous.isPoint ? '#fff' : previous.source.color,
     weight: previous.isPoint ? 2 : 2,
@@ -189,7 +202,7 @@ function buildPopupContent(feature) {
   const properties = feature.properties || {};
   const type = property(feature, 'type') || '—';
   const rows = Object.entries(properties)
-    .filter(([key]) => !['name', 'description', 'type', 'phase'].includes(key.toLowerCase()))
+    .filter(([key]) => !['name', 'description', 'type', 'phase', 'path', 'schools', 'idpmv name', 'latitude', 'longitude', 'elevation'].includes(key.toLowerCase()))
     .map(([key, value]) => `<div><dt>${escapeHtml(pretty(key))}</dt><dd>${escapeHtml(value ?? '—')}</dd></div>`).join('');
   const content = document.createElement('div');
   content.className = 'popup-body';
@@ -261,7 +274,7 @@ function populateFilters() {
     select.value = values.has(priorValue) ? priorValue : 'all';
   });
 }
-function fitVisible() { const shown = allFeatures.filter(item => item.show).map(item => item.layer); if (shown.length) map.fitBounds(L.featureGroup(shown).getBounds(), { padding: [45, 45], maxZoom: 14 }); }
+function fitVisible() { const shown = allFeatures.filter(item => item.show).map(item => item.layer); if (shown.length) map.fitBounds(L.featureGroup(shown).getBounds(), { padding: [45, 45], maxZoom: 16 }); }
 async function getSourceData(source) { if (source.format === 'shapefile') return shp(source.url); const response = await fetch(source.url); if (!response.ok) throw new Error(`Could not load ${source.url}`); return response.json(); }
 // shpjs returns an array of FeatureCollections when a ZIP holds more than one shapefile;
 // merge them so every layer is handled as a single FeatureCollection.
@@ -275,7 +288,7 @@ function markLayerFailed(source, error) {
   els.layerList.insertAdjacentHTML('beforeend', `<div class="layer-row layer-error" title="Could not load ${source.url}"><i class="layer-swatch" style="background:${source.color}"></i><span>${source.label}</span><span class="layer-meta">unavailable</span></div>`);
 }
 function addLayer(source, data) {
-  const group = L.geoJSON(data, { style: () => styleFor(source), pointToLayer: (_, latlng) => L.circleMarker(latlng, { radius: 7, color: '#fff', weight: 2, fillColor: source.color, fillOpacity: 1 }), onEachFeature: (feature, layer) => { const item = { feature, layer, source, isPoint: feature.geometry.type.includes('Point'), isLine: /LineString/.test(feature.geometry.type), show: true }; allFeatures.push(item); layer.on('click', () => { if (!item.show) return; clearFeatureHighlight(); highlightFeature(item); if (item.isLine) zoomToFeature(layer); else focusFeature(layer); showFeatureDetails(item); }); layer.bindTooltip(featureName(feature), { direction: 'top', offset: [0, -8] }); } }).addTo(map);
+  const group = L.geoJSON(data, { style: () => styleFor(source), pointToLayer: (_, latlng) => L.marker(latlng, { icon: pointIcon(source.color), keyboard: true, riseOnHover: true }), onEachFeature: (feature, layer) => { const item = { feature, layer, source, isPoint: feature.geometry.type.includes('Point'), isLine: /LineString/.test(feature.geometry.type), show: true }; allFeatures.push(item); layer.on('click', () => { if (!item.show) return; clearFeatureHighlight(); highlightFeature(item); if (item.isLine) zoomToFeature(layer); else focusFeature(layer); showFeatureDetails(item); }); layer.bindTooltip(featureName(feature), { direction: 'top', offset: [0, -8] }); } }).addTo(map);
   layers.set(source.id, group);
   const toggleId = `toggle-${slug(source.id)}`;
   els.layerList.insertAdjacentHTML('beforeend', `<label class="layer-row"><input id="${toggleId}" type="checkbox" checked><i class="layer-swatch" style="background:${source.color}"></i><span>${source.label}</span></label>`);
